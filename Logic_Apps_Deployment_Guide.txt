@@ -1,0 +1,182 @@
+# Step-by-Step Guide to Deploy Logic Apps Workflow for Ontology Data Refreshes
+
+## Overview
+This guide deploys a Logic Apps workflow that automates ontology data refreshes by querying Azure Cosmos DB for updated triples and pushing them to Azure Sentinel’s `OntologyTriples` custom log. The workflow runs hourly, ensuring real-time threat intelligence for the Sentinel Workbook.
+
+## Prerequisites
+- Azure subscription with permissions to create Logic Apps, Cosmos DB, and Sentinel resources.
+- Azure Cosmos DB account with Gremlin API, containing ontology triples (populated by PowerShell script, artifact_id: e1b73374-d1af-4ada-85cb-1eaba0de27ee).
+- Azure Sentinel workspace with `OntologyTriples` custom log configured.
+- Entra ID credentials with permissions to manage Logic Apps and API connections.
+- JSON workflow definition (artifact_id: 1e2218e6-fa3c-43ae-9447-3179ba11e70f).
+- PowerShell or Azure CLI for configuration (leverages your PowerShell expertise).
+
+## Step 1: Prepare Azure Resources
+1. **Verify Cosmos DB Setup**:
+   - Log in to the Azure Portal (https://portal.azure.com).
+   - Navigate to your Cosmos DB account (Gremlin API).
+   - Confirm the database (`SecurityOntology`) and container (`OntologyGraph`) exist, with triples (e.g., `Subject: Vulnerability:CVE-2025-1234, Predicate: affects, Object: Asset:ExchangeServer`).
+   - Note the **Endpoint** (e.g., `https://your-cosmos-db.documents.azure.com:443/`) and **Primary Key** (from Keys tab).
+
+2. **Verify Sentinel Workspace**:
+   - Navigate to your Sentinel workspace under **Azure Sentinel**.
+   - Confirm the `OntologyTriples` custom log is active (populated via PowerShell, as shown in the workbook guide, artifact_id: 390bfb94-e65d-417c-ac54-aa0a49e47b00).
+   - Note the **Workspace ID** and **Primary Key** (from Settings > Workspace Settings > Agents).
+
+3. **Create Resource Group** (if not already existing):
+   - In Azure Portal, go to **Resource Groups** > **Create**.
+   - Name: `ThreatIntelRG` (or your choice).
+   - Region: Choose a region (e.g., East US).
+   - Click **Review + Create** > **Create**.
+
+## Step 2: Create Logic App
+1. **Navigate to Logic Apps**:
+   - In Azure Portal, go to **Logic Apps** > **Add**.
+   - Subscription: Select your subscription.
+   - Resource Group: `ThreatIntelRG`.
+   - Logic App Name: `OntologyDataRefresh`.
+   - Region: Match your Cosmos DB/Sentinel region.
+   - Plan Type: Consumption (for simplicity).
+   - Click **Review + Create** > **Create**.
+
+2. **Open Logic App Designer**:
+   - Once deployed, go to **Logic Apps** > `OntologyDataRefresh` > **Overview** > **Logic App Designer**.
+
+## Step 3: Import Workflow JSON
+1. **Access Advanced Editor**:
+   - In Logic App Designer, click **Code View** (top right).
+
+2. **Copy JSON**:
+   - Open the workflow JSON (artifact_id: 1e2218e6-fa3c-43ae-9447-3179ba11e70f).
+   - Copy the entire JSON content.
+
+3. **Paste and Update**:
+   - Paste the JSON into the Code View editor.
+   - Update placeholders:
+     - `your-workspace-id`: Replace with your Sentinel Workspace ID.
+     - `your-subscription-id`: Your Azure subscription ID.
+     - `your-resource-group`: `ThreatIntelRG` (or your resource group name).
+     - `your-region`: Your Azure region (e.g., `eastus`).
+   - Save the changes.
+
+## Step 4: Configure API Connections
+1. **Cosmos DB Connection**:
+   - In Logic App Designer, switch to **Designer** view.
+   - Click the **Query_Cosmos_DB** action (Gremlin query step).
+   - Select **Add new connection**.
+   - Name: `cosmosdb-connection`.
+   - Authentication Type: Access Key.
+   - Account Endpoint: Your Cosmos DB Endpoint (e.g., `https://your-cosmos-db.documents.azure.com:443/`).
+   - Account Key: Your Cosmos DB Primary Key.
+   - Database: `SecurityOntology`.
+   - Click **Create**.
+   - Verify the connection status is green.
+
+2. **Azure Monitor Logs Connection**:
+   - Click the **Send_to_Sentinel** action.
+   - Select **Add new connection**.
+   - Name: `sentinel-connection`.
+   - Workspace ID: Your Sentinel Workspace ID.
+   - Shared Key: Your Sentinel Primary Key.
+   - Click **Create**.
+   - Verify the connection status is green.
+
+3. **Secure Credentials** (aligning with your Entra ID expertise):
+   - Navigate to **Azure Key Vault** > Create a new vault (if not existing).
+   - Store Cosmos DB and Sentinel keys as secrets.
+   - Update the Logic App to use Key Vault references:
+     ```json
+     "AccountKey": {
+       "reference": {
+         "keyVault": {
+           "id": "/subscriptions/your-subscription-id/resourceGroups/ThreatIntelRG/providers/Microsoft.KeyVault/vaults/your-vault-name"
+         },
+         "secretName": "CosmosDBKey"
+       }
+     }
+     ```
+   - Assign the Logic App a managed identity with access to Key Vault (via **Identity** > **System assigned** > **Azure role assignments**).
+
+## Step 5: Test the Workflow
+1. **Manual Trigger**:
+   - In Logic App Designer, click **Run Trigger** (top bar).
+   - Monitor the **Runs history** tab for status (Succeeded, Failed).
+
+2. **Verify Cosmos DB Query**:
+   - Ensure the Gremlin query (`g.V().has('LastUpdated', gt(...))`) retrieves triples updated in the last hour.
+   - Test in Cosmos DB Data Explorer:
+     ```gremlin
+     g.V().has('LastUpdated', gt('2025-05-13T12:00:00Z')).valueMap(true)
+     ```
+
+3. **Check Sentinel Logs**:
+   - In Sentinel, go to **Logs** > Query:
+     ```kql
+     OntologyTriples
+     | where TimeGenerated > ago(1h)
+     | project Subject, Predicate, Object, Severity
+     ```
+   - Confirm new triples appear (e.g., `Vulnerability:CVE-2025-1234 affects Asset:ExchangeServer`).
+
+4. **Validate Workbook**:
+   - Open the Sentinel Workbook (artifact_id: 390bfb94-e65d-417c-ac54-aa0a49e47b00).
+   - Check visualizations (e.g., Sankey diagram, pie chart) for updated data.
+
+## Step 6: Schedule and Monitor
+1. **Confirm Recurrence**:
+   - In the workflow JSON, the `Recurrence` trigger is set to run hourly (`"frequency": "Hour", "interval": 1`).
+   - Adjust to 15 minutes (`"interval": 4`) if more frequent updates are needed.
+
+2. **Set Up Alerts**:
+   - Create an Azure Monitor alert for failed runs:
+     - Go to **Logic Apps** > `OntologyDataRefresh` > **Monitoring** > **Alerts** > **New alert rule**.
+     - Condition: `Whenever the total number of runs failed is greater than 0`.
+     - Action: Email notification to your email (jason@recalledtolife.us).
+   - Aligns with your incident management experience.
+
+3. **Monitor Performance**:
+   - Check **Runs history** for execution time (should be <1 minute for small datasets).
+   - Optimize Gremlin query for large ontologies (e.g., add `has('Predicate', 'affects')` to filter).
+
+## Step 7: Document and Secure
+1. **Document Setup** (for portfolio project, artifact_id: d75f55ac-af28-40bd-b751-b0b31c416f06):
+   - Add to GitHub README:
+     ```
+     ## Logic Apps Workflow
+     - **Purpose**: Automates ontology data refreshes from Cosmos DB to Sentinel.
+     - **Setup**: Deployed in Azure Logic Apps with Cosmos DB and Sentinel connections.
+     - **Schedule**: Runs hourly, configurable via Recurrence trigger.
+     - **Security**: Uses Entra ID managed identity and Key Vault for credentials.
+     ```
+   - Include a screenshot of the workflow in Designer view.
+
+2. **Secure Workflow** (HIPAA compliance):
+   - Enable diagnostic logging: **Logic Apps** > `OntologyDataRefresh` > **Diagnostic settings** > Add to Azure Monitor.
+   - Restrict access: Assign Entra ID roles (e.g., Logic App Contributor) to specific users.
+   - Encrypt data in transit: Ensure Cosmos DB and Sentinel use HTTPS.
+
+## Troubleshooting Tips
+- **Connection Errors**:
+  - Verify Cosmos DB Endpoint and Key in the connection settings.
+  - Check Entra ID permissions for the Logic App’s managed identity.
+- **No Triples Retrieved**:
+  - Ensure triples in Cosmos DB have a `LastUpdated` property (set by PowerShell script).
+  - Test Gremlin query in Data Explorer.
+- **Sentinel Log Missing Data**:
+  - Confirm Workspace ID and Shared Key are correct.
+  - Check Sentinel Logs for ingestion errors (`Operation_Log` table).
+- **Performance Issues**:
+  - Reduce Gremlin query scope (e.g., filter by `Predicate`).
+  - Increase Logic App timeout (`"timeout": "PT5M"` in JSON).
+
+## Next Steps
+- **Test with Real Data**: Use the PowerShell script to add sample triples (e.g., 10 CVEs, 5 assets) and verify they appear in Sentinel.
+- **Integrate with Workbook**: Confirm updated triples refresh visualizations (e.g., Threat Analysis Sankey diagram).
+- **Portfolio Showcase**: Include workflow in your GitHub repo with setup guide and demo video, highlighting automation skills.
+- **Optimize**: Adjust recurrence interval or query filters based on ontology size and research needs.
+
+## Resources
+- Azure Logic Apps Documentation: https://learn.microsoft.com/en-us/azure/logic-apps/
+- Cosmos DB Gremlin API: https://learn.microsoft.com/en-us/azure/cosmos-db/graph/
+- Sentinel Custom Logs: https://learn.microsoft.com/en-us/azure/sentinel/custom-logs
+- Microsoft Learn: “Automate Security Tasks with Azure Logic Apps”
