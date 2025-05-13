@@ -1,0 +1,188 @@
+# Step-by-Step Guide to Establish GitHub Repository and Publish Logic Apps Workflow
+
+## Overview
+This guide helps you create a GitHub repository for your ransomware threat intelligence dashboard portfolio project, upload the Logic Apps workflow (artifact_id: 1e2218e6-fa3c-43ae-9447-3179ba11e70f) and related artifacts, and publish a README to document the project. The repository will showcase your skills in ontology design, PowerShell automation, and Microsoft security tools for the Microsoft Security Researcher role.
+
+## Prerequisites
+- A computer with internet access and PowerShell installed (leverages your PowerShell expertise).
+- Azure tenant with the Logic Apps workflow, Cosmos DB, and Sentinel setup (per previous guide, artifact_id: 688f1d10-3d7b-4cb1-bf2e-602983c4e879).
+- Artifacts from previous responses:
+  - PowerShell script (artifact_id: e1b73374-d1af-4ada-85cb-1eaba0de27ee).
+  - STIX bundle (artifact_id: 3d7f2897-c267-41a9-b23f-a219cad91e3c).
+  - Sentinel Workbook JSON (artifact_id: 390bfb94-e65d-417c-ac54-aa0a49e47b00).
+  - KQL queries (artifact_id: 4cb3b4bf-2f19-4c73-a566-6443e32b4581).
+  - Logic Apps workflow JSON (artifact_id: 1e2218e6-fa3c-43ae-9447-3179ba11e70f).
+  - Portfolio project outline (artifact_id: d75f55ac-af28-40bd-b751-b0b31c416f06).
+
+## Step 1: Create a GitHub Account
+1. **Sign Up**:
+   - Go to https://github.com.
+   - Click **Sign up** (top right).
+   - Enter your email (e.g., jason@recalledtolife.us), a password, and a username (e.g., `JasonTrupp`).
+   - Complete the verification process (email code, CAPTCHA).
+   - Choose the free plan.
+
+2. **Set Up Profile**:
+   - Go to **Settings** > **Profile**.
+   - Add your name (Jason Trupp) and a professional bio: “Cybersecurity professional with 25+ years securing Microsoft ecosystems. Expert in Defender 365, Entra ID, and threat intelligence.”
+   - Link to your LinkedIn (optional) for visibility.
+
+## Step 2: Create a Repository
+1. **New Repository**:
+   - From GitHub’s homepage, click **New** (under Repositories) or go to https://github.com/new.
+   - Repository Name: `Ransomware-Threat-Intel-Dashboard`.
+   - Description: “Ontology-driven threat intelligence dashboard for ransomware analysis using Azure Sentinel, Cosmos DB, and Microsoft Graph.”
+   - Visibility: Public (for portfolio visibility; private if preferred).
+   - Check **Add a README file** (will be overwritten later).
+   - Click **Create repository**.
+
+2. **Clone Locally (Optional)**:
+   - If comfortable with Git, clone the repository to your computer:
+     ```powershell
+     git clone https://github.com/JasonTrupp/Ransomware-Threat-Intel-Dashboard.git
+     cd Ransomware-Threat-Intel-Dashboard
+     ```
+   - Alternatively, use the GitHub web interface for uploads (Step 4).
+
+## Step 3: Prepare Artifacts Locally
+1. **Create Files**:
+   - On your computer, create a folder (e.g., `C:\Portfolio\Ransomware-Threat-Intel-Dashboard`).
+   - Save each artifact as a file:
+     - `Update-Ontology.ps1` (artifact_id: e1b73374-d1af-4ada-85cb-1eaba0de27ee).
+     - `Ransomware_STIX_Bundle.json` (artifact_id: 3d7f2897-c267-41a9-b23f-a219cad91e3c).
+     - `Ransomware_Ontology_Workbook.json` (artifact_id: 390bfb94-e65d-417c-ac54-aa0a49e47b00).
+     - `Additional_KQL_Queries.txt` (artifact_id: 4cb3b4bf-2f19-4c73-a566-6443e32b4581).
+     - `Ontology_Data_Refresh_Workflow.json` (artifact_id: 1e2218e6-fa3c-43ae-9447-3179ba11e70f).
+     - `Portfolio_Project_Outline.txt` (artifact_id: d75f55ac-af28-40bd-b751-b0b31c416f06).
+   - PowerShell to save files:
+     ```powershell
+     $artifacts = @{
+         "Update-Ontology.ps1" = "PowerShell script content here"
+         "Ransomware_STIX_Bundle.json" = "STIX JSON content here"
+         # Add other artifacts
+     }
+     $path = "C:\Portfolio\Ransomware-Threat-Intel-Dashboard"
+     New-Item -ItemType Directory -Path $path -Force
+     foreach ($file in $artifacts.Keys) {
+         Set-Content -Path "$path\$file" -Value $artifacts[$file]
+     }
+     ```
+
+2. **Add README**:
+   - Copy the README content (provided below, artifact_id: 2b7e9f3a-6c4d-4e8b-a1f2-9d5c7e2f3b4a).
+   - Save as `README.md` in the folder.
+
+## Step 4: Upload Artifacts to GitHub
+1. **Web Interface Upload**:
+   - Go to your repository: `https://github.com/JasonTrupp/Ransomware-Threat-Intel-Dashboard`.
+   - Click **Add file** > **Upload files**.
+   - Drag and drop all files (`Update-Ontology.ps1`, `Ransomware_STIX_Bundle.json`, etc.).
+   - Commit message: “Initial upload of threat intelligence dashboard artifacts”.
+   - Click **Commit changes**.
+
+2. **Overwrite README**:
+   - Click `README.md` in the repository.
+   - Click the pencil icon (Edit).
+   - Paste the README content (artifact_id: 2b7e9f3a-6c4d-4e8b-a1f2-9d5c7e2f3b4a).
+   - Commit message: “Updated README with project documentation”.
+   - Click **Commit changes**.
+
+3. **Using Git (Optional)**:
+   - If cloned locally:
+     ```powershell
+     git add .
+     git commit -m "Initial upload of threat intelligence dashboard artifacts"
+     git push origin main
+     ```
+
+## Step 5: Organize Repository Structure
+1. **Create Folders**:
+   - In the web interface, click **Add file** > **Create new file**.
+   - Create folders by naming files with paths (e.g., `scripts/Update-Ontology.ps1`, `workbooks/Ransomware_Ontology_Workbook.json`).
+   - Move files to folders:
+     - `scripts/`: `Update-Ontology.ps1`, `Additional_KQL_Queries.txt`.
+     - `workbooks/`: `Ransomware_Ontology_Workbook.json`.
+     - `workflows/`: `Ontology_Data_Refresh_Workflow.json`.
+     - `stix/`: `Ransomware_STIX_Bundle.json`.
+     - `docs/`: `Portfolio_Project_Outline.txt`.
+   - Commit each move.
+
+2. **Final Structure**:
+   ```
+   Ransomware-Threat-Intel-Dashboard/
+   ├── scripts/
+   │   ├── Update-Ontology.ps1
+   │   ├── Additional_KQL_Queries.txt
+   ├── workbooks/
+   │   ├── Ransomware_Ontology_Workbook.json
+   ├── workflows/
+   │   ├── Ontology_Data_Refresh_Workflow.json
+   ├── stix/
+   │   ├── Ransomware_STIX_Bundle.json
+   ├── docs/
+   │   ├── Portfolio_Project_Outline.txt
+   ├── README.md
+   ```
+
+## Step 6: Test and Validate
+1. **Verify Uploads**:
+   - Browse the repository to confirm all files are present.
+   - Open each file to ensure content matches artifacts (e.g., check JSON syntax in `Ontology_Data_Refresh_Workflow.json`).
+
+2. **Test Workflow**:
+   - Follow the Logic Apps deployment guide (artifact_id: 688f1d10-3d7b-4cb1-bf2e-602983c4e879).
+   - Run the workflow and check Sentinel’s `OntologyTriples` log:
+     ```kql
+     OntologyTriples
+     | where TimeGenerated > ago(1h)
+     | project Subject, Predicate, Object, Severity
+     ```
+
+3. **Validate Workbook**:
+   - Ensure the Sentinel Workbook (artifact_id: 390bfb94-e65d-417c-ac54-aa0a49e47b00) reflects updated triples.
+   - Test KQL queries (artifact_id: 4cb3b4bf-2f19-4c73-a566-6443e32b4581) in the Query Explorer tab.
+
+## Step 7: Publish and Share
+1. **Make Repository Public**:
+   - Go to **Settings** > **General** > **Danger Zone** > **Change repository visibility**.
+   - Select **Public** and confirm (ensures visibility for recruiters).
+
+2. **Update LinkedIn**:
+   - Add a post: “Excited to share my ransomware threat intelligence dashboard project, showcasing ontology-driven analysis with Azure Sentinel, Cosmos DB, and Microsoft Graph. Check it out: [link to repository]”.
+   - Update your profile’s Projects section with a link to the repository.
+
+3. **Portfolio Integration**:
+   - Include the repository link in your resume (artifact_id: 324b0de2-7925-4b0a-81d5-40bdcbf6d655).
+   - Example: “Developed ontology-driven threat intelligence dashboard (GitHub: [link]), integrating Sentinel, PowerShell, and STIX for ransomware analysis.”
+   - Prepare a 5-minute demo video walking through the repository and workbook visualizations.
+
+## Step 8: Maintain and Enhance
+1. **Add Screenshots**:
+   - Take screenshots of the Sentinel Workbook visualizations (e.g., Sankey diagram, pie chart).
+   - Upload to `docs/screenshots/` folder with names like `threat_sankey.png`.
+   - Update README to reference screenshots.
+
+2. **Regular Updates**:
+   - Add new artifacts (e.g., additional KQL queries) as you expand the project.
+   - Commit changes with clear messages (e.g., “Added new KQL query for Entra ID risky users”).
+
+3. **Backup**:
+   - Download a zip of the repository: **Code** > **Download ZIP**.
+   - Store locally (e.g., `C:\Portfolio\Backup`) for redundancy.
+
+## Troubleshooting Tips
+- **Upload Errors**:
+  - Ensure file sizes are under GitHub’s 100 MB limit (all artifacts are text-based and small).
+  - Check internet connectivity and retry.
+- **JSON Syntax Issues**:
+  - Validate JSON files (e.g., `Ransomware_Ontology_Workbook.json`) using an online JSON validator.
+- **Visibility Concerns**:
+  - If hesitant about public visibility, keep private and share direct links with recruiters via GitHub’s access controls.
+- **Workflow Failures**:
+  - Revisit the Logic Apps deployment guide (artifact_id: 688f1d10-3d7b-4cb1-bf2e-602983c4e879) for connection or query errors.
+
+## Resources
+- GitHub Docs: https://docs.github.com/en/get-started
+- Azure Logic Apps: https://learn.microsoft.com/en-us/azure/logic-apps/
+- Microsoft Learn: “Introduction to GitHub for Developers”
+- PowerShell Git Commands: https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/
